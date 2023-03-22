@@ -18,8 +18,6 @@ from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
-print(whisper.__file__)
-
 
 class ChatGPTAvatar:
     def __init__(self):
