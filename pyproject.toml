@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "chatgpt-avatar"
+version = "0.1.0"
+description = ""
+authors = ["kamibayashi <kamibayashi@gmail.com>"]
+readme = "README.md"
+packages = [{include = "chatgpt_avatar"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.24.2"
+openai = "^0.27.2"
+pydub = "^0.25.1"
+pyaudio = "^0.2.13"
+langchain = "^0.0.118"
+openai-whisper = "20230124"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
