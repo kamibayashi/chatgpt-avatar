@@ -1,33 +1,33 @@
+import json
 import os
 import time
-import numpy as np
-from datetime import datetime
-from typing import Optional
-import openai
-import whisper
-import json
-import requests
-from pydub import AudioSegment, playback
-import pyaudio
 import wave
+from datetime import datetime
+from typing import Any, Dict, Optional
 
+import numpy as np
+import openai
+import pyaudio
+import requests
+import whisper
 from langchain import PromptTemplate
-from langchain.llms import OpenAIChat
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from langchain.llms import OpenAIChat
+from pydub import AudioSegment, playback
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
 class ChatGPTAvatar:
-    def __init__(self):
+    def __init__(self) -> None:
         # setting audio
         self.audio = pyaudio.PyAudio()
-        self.channels = 1
-        self.rate = 44100
-        self.chunk = 2**11
-        self.format = pyaudio.paInt16
-        self.stream = self.audio.open(
+        self.channels: int = 1
+        self.rate: int = 44100
+        self.chunk: int = 2**11
+        self.format: int = pyaudio.paInt16
+        self.stream: pyaudio.PyAudio.Stream = self.audio.open(
             format=self.format,
             channels=self.channels,
             rate=self.rate,
@@ -35,11 +35,11 @@ class ChatGPTAvatar:
             frames_per_buffer=self.chunk,
             stream_callback=self.callback,
         )
-        self.threshold = 4000
-        self.time_after_speaking = 3
-        self.status = 0
-        self.output = None
-        self.socket = None
+        self.threshold: int = 4000
+        self.time_after_speaking: int = 3
+        self.status: int = 0
+        self.output: Optional[wave.Wave_write] = None
+        self.socket: Optional[str] = None
 
         # setting chatgpt
         prompt = PromptTemplate(
@@ -71,7 +71,13 @@ AI:"""
         return """あなたは、親切で、創造的で、賢く、とてもフレンドリーで役に立つアシスタントです。
 AIは質問に対する答えを知らない場合、正直に「知らない」と答えます。"""
 
-    def callback(self, in_data, frame_count, time_info, status):
+    def callback(
+        self,
+        in_data: Any,
+        frame_count: int,
+        time_info: Dict[Any, Any],
+        status: int,
+    ) -> tuple[Any, Any]:
         if self.output is not None:
             self.output.writeframes(in_data)
         amp = np.frombuffer(in_data, np.int16)
@@ -79,7 +85,7 @@ AIは質問に対する答えを知らない場合、正直に「知らない」
         out_data = in_data
         return (out_data, pyaudio.paContinue)
 
-    def record(self, amp):
+    def record(self, amp: np.ndarray) -> None:
         if (self.status == 0) and (amp.max() > self.threshold):
             self.status = 1
             self.open_file(datetime.now().strftime("%Y%m%d_%H%M%S"))
@@ -95,28 +101,27 @@ AIは質問に対する答えを知らない場合、正直に「知らない」
                 self.call_chatgpt()
 
     def call_chatgpt(self) -> None:
-        reply_message = self.conversation.predict(input=self.voice_to_text(self.socket))
+        reply_message = self.conversation.predict(input=self.voice_to_text())
         self.talk_with_avatar(reply_message)
 
     def open_file(self, time_stamp: str) -> None:
-        self.socket = "./recorded/" + time_stamp + "_audio.wav"
+        self.socket = f"./recorded/{time_stamp}_audio.wav"
         self.output = wave.open(self.socket, "wb")
         self.output.setnchannels(self.channels)
         self.output.setsampwidth(2)
         self.output.setframerate(self.rate)
 
     def close_file(self) -> None:
+        assert self.output is not None
         self.output.close()
         self.output = None
 
     def close(self) -> None:
         self.audio.terminate()
 
-    def voice_to_text(
-        self, input_path: str, model_name: Optional[str] = "medium"
-    ) -> str:
+    def voice_to_text(self, model_name: str = "medium") -> Any:
         model = whisper.load_model(model_name)
-        result = model.transcribe(input_path, fp16=False, verbose=True)
+        result = model.transcribe(self.socket, fp16=False, verbose=True)
         return result["text"]
 
     def talk_with_avatar(
@@ -159,7 +164,7 @@ AIは質問に対する答えを知らない場合、正直に「知らない」
         playback.play(AudioSegment(response.content))
 
 
-def main():
+def main() -> None:
     while True:
         bot = ChatGPTAvatar()
 

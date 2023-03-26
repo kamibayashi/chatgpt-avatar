@@ -14,7 +14,16 @@ pydub = "^0.25.1"
 pyaudio = "^0.2.13"
 langchain = "^0.0.118"
 openai-whisper = "20230124"
+pre-commit = "^3.2.1"
+poethepoet = "^0.19.0"
+pytest = "^7.2.2"
 
+[tool.poetry.group.dev.dependencies]
+lizard = "^1.17.10"
+
+[tool.poe.tasks]
+test = { "cmd" = "pytest", help = "pytest" }
+pre-commit = { "cmd" = "pre-commit", help = "pre-commit" }
 
 [build-system]
 requires = ["poetry-core"]
