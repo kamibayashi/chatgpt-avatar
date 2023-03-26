@@ -112,8 +112,8 @@ AIは質問に対する答えを知らない場合、正直に「知らない」
         self.output.setframerate(self.rate)
 
     def close_file(self) -> None:
-        assert self.output is not None
-        self.output.close()
+        if self.output is not None:
+            self.output.close()
         self.output = None
 
     def close(self) -> None:
@@ -136,6 +136,7 @@ AIは質問に対する答えを知らない場合、正直に「知らない」
         # query to VOICEVOX
         response = requests.post(
             "http://127.0.0.1:50021/audio_query",
+            timeout=10,
             params={"text": text, "speaker": speaker_id},
         )
 
@@ -152,6 +153,7 @@ AIは質問に対する答えを知らない場合、正直に「知らない」
         # query to VOICEVOX
         response = requests.post(
             "http://127.0.0.1:50021/synthesis",
+            timeout=10,
             params={
                 "speaker": speaker_id,
                 "speed": "1.0",
